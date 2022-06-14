@@ -1,29 +1,54 @@
-import Vue from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import { createRouter, RouteRecordRaw, createWebHistory } from 'vue-router';
 
-Vue.use(VueRouter);
+import store from '@/store';
 
-const routes: Array<RouteConfig> = [
+import { StoreNames } from './../enums/store-names';
+import Login from '../views/Login.vue';
+import EventList from '../views/Events/EventList.vue';
+import EventDetails from '../views/Events/EventDetails.vue';
+import CreateEvent from '../views/Events/CreateEvent.vue';
+
+const routes: Array<RouteRecordRaw> = [
   {
-    path: "/",
-    name: "home",
-    component: HomeView,
+    path: '/',
+    redirect: 'events',
   },
   {
-    path: "/about",
-    name: "about",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+    path: '/login',
+    name: 'login',
+    component: Login,
+  },
+  {
+    path: '/events',
+    name: 'events',
+    component: EventList,
+  },
+  {
+    path: '/event-details/:id',
+    name: 'event-details',
+    component: EventDetails
+  },
+  {
+    path: '/create-event',
+    name: 'create-event',
+    component: CreateEvent,
+    beforeEnter: (to, _from, next) => {
+      const userToken = store.getters[`${StoreNames.UserStore}/userToken`];
+      
+      if(!userToken) {
+        next({
+          path: '/login',
+          query: { redirect: to.fullPath }
+        })
+      } else {
+        next();
+      }
+    },
   },
 ];
 
-const router = new VueRouter({
-  mode: "history",
-  base: process.env.BASE_URL,
+const router = createRouter({
+  history: createWebHistory(),
   routes,
 });
 
